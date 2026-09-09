@@ -101,6 +101,7 @@ const desktopPackageMetadata = require("../package.json");
 const {
   app,
   BrowserWindow,
+  clipboard,
   dialog,
   ipcMain,
   Menu,
@@ -1073,7 +1074,7 @@ const IDLE_ROUTER_INFO = Object.freeze({
 
 let mainWindow = null;
 const pendingDeepLinks = [];
-const nativeContextMenus = createNativeContextMenus({ Menu, getWindow: () => mainWindow });
+const nativeContextMenus = createNativeContextMenus({ Menu, clipboard, getWindow: () => mainWindow });
 
 browserPanel = createBrowserPanel({
   showNativeContextMenu: nativeContextMenus.show,
