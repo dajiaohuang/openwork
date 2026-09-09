@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 import { invalidateTeamInferenceOAuth, revokeMemberGatewayCredentials } from "./llm/inference-provider-lifecycle.js";
-import { ensureMemberInferenceKey } from "./inference.js";
+import { ensureMemberGatewayKey } from "./gateway-keys.js";
 import { getInitialActiveOrganizationIdForUser } from "./active-organization.js";
 import { db } from "./db.js";
 import { env } from "./env.js";
@@ -661,7 +661,7 @@ export const auth = betterAuth({
     member: {
       create: {
         after: async (member: AuthMemberHookRow) => {
-          if (member.userId && !member.removedAt) await ensureMemberInferenceKey({
+          if (member.userId && !member.removedAt) await ensureMemberGatewayKey({
             organizationId: normalizeDenTypeId("organization", member.organizationId),
             memberId: normalizeDenTypeId("member", member.id),
           });
@@ -685,6 +685,10 @@ export const auth = betterAuth({
             organizationId: member.organizationId,
             orgMembershipId: member.id,
             userId: member.userId,
+          });
+          await revokeMemberGatewayCredentials({
+            organizationId: normalizeDenTypeId("organization", member.organizationId),
+            memberId: normalizeDenTypeId("member", member.id),
           });
         },
         after: async (member: AuthMemberHookRow) => {

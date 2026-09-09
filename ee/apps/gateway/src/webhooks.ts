@@ -368,8 +368,10 @@ function reportUnknownPricedModel(input: { span: ParsedSpan; inferenceKey: Webho
 
 async function ingestSpan(span: ParsedSpan, dependencies: WebhookDependencies) {
   const inferenceKey = await dependencies.findInferenceKey(span.inferenceKeyId)
-  if (!inferenceKey || inferenceKey.status !== "active") {
-    logWebhookError("skipped span for missing or inactive inference key", { inferenceKeyId: span.inferenceKeyId })
+  // Webhook authentication authorizes settlement, not new inference requests.
+  // Incurred usage can finish and arrive after its attribution key was revoked.
+  if (!inferenceKey) {
+    logWebhookError("skipped span for missing inference key", { inferenceKeyId: span.inferenceKeyId })
     return false
   }
   if (inferenceKey.org_membership_id !== normalizeDenTypeId("member", span.orgMembershipId)) {

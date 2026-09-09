@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto"
-import { and, eq, inArray, isNull } from "@openwork-ee/den-db/drizzle"
-import { InferenceKeyTable, InferenceOrgUpstreamProviderKeyTable, MemberTable } from "@openwork-ee/den-db"
+import { and, eq, inArray, isNotNull, isNull } from "@openwork-ee/den-db/drizzle"
+import { GatewayKeyTable, InferenceKeyTable, InferenceOrgUpstreamProviderKeyTable, MemberTable } from "@openwork-ee/den-db"
+import { gatewayBearerKeyLookupDigest, type GatewayBearerKey } from "@openwork-ee/utils/gateway-bearer-key"
 import {
   inferenceBearerKeyLookupDigests,
   type InferenceBearerKey,
@@ -15,6 +16,7 @@ export function constantTimeEquals(a: string, b: string) {
 }
 
 export async function findActiveInferenceKey(key: InferenceBearerKey) {
+  if (key.value.startsWith("ow_gw_")) return null
   const keyHashes = await inferenceBearerKeyLookupDigests(key)
   const [row] = await db
     .select({ inferenceKey: InferenceKeyTable })
@@ -31,6 +33,20 @@ export async function findActiveInferenceKey(key: InferenceBearerKey) {
     return null
   }
   return row.inferenceKey
+}
+
+export async function findActiveGatewayKey(key: GatewayBearerKey) {
+  const digest = await gatewayBearerKeyLookupDigest(key)
+  const [row] = await db.select({
+    id: GatewayKeyTable.id,
+    organization_id: GatewayKeyTable.organization_id,
+    org_membership_id: GatewayKeyTable.org_membership_id,
+  }).from(GatewayKeyTable)
+    .innerJoin(MemberTable, and(eq(MemberTable.id, GatewayKeyTable.org_membership_id), eq(MemberTable.organizationId, GatewayKeyTable.organization_id)))
+    .where(and(eq(GatewayKeyTable.key_hash, digest), eq(GatewayKeyTable.status, "active"), isNull(GatewayKeyTable.revoked_at),
+      isNull(MemberTable.removedAt), isNotNull(MemberTable.userId)))
+    .limit(1)
+  return row ?? null
 }
 
 export async function getOpenRouterProviderKey(organizationId: string) {
