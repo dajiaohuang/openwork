@@ -3164,10 +3164,13 @@ export class DenClient extends HeyApiClient {
 
   /**
    * List Workflow artifact snapshots
+   *
+   * Lists a Workflow's artifact snapshots, most recently finished first. Pass nextCursor from the previous page as cursor to continue; nextCursor is null on the last page.
    */
   public getV1WorkflowsByConfigObjectIdSnapshots<ThrowOnError extends boolean = false>(
     parameters: {
       configObjectId: string;
+      cursor?: string;
       limit?: number;
     },
     options?: Options<never, ThrowOnError>,
@@ -3178,6 +3181,7 @@ export class DenClient extends HeyApiClient {
         {
           args: [
             { in: "path", key: "configObjectId" },
+            { in: "query", key: "cursor" },
             { in: "query", key: "limit" },
           ],
         },
