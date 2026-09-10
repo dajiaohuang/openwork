@@ -2853,6 +2853,7 @@ function SettingsRouteContent(props: SettingsSurfaceProps = {}) {
         query={modelPicker.query}
         setQuery={modelPicker.setQuery}
         target="default"
+        currentBehaviorValue={local.prefs.modelVariant ?? null}
         current={
           local.prefs.defaultModel ?? { providerID: "", modelID: "" }
         }
@@ -2866,7 +2867,7 @@ function SettingsRouteContent(props: SettingsSurfaceProps = {}) {
           }));
           modelPicker.setOpen(false);
         }}
-        onBehaviorChange={() => {}}
+        onBehaviorChange={(_model, value) => local.setPrefs((previous) => ({ ...previous, modelVariant: value }))}
         onOpenSettings={() => {}}
         onClose={() => modelPicker.setOpen(false)}
       />
