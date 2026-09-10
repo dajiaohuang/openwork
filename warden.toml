@@ -16,6 +16,10 @@ ignorePaths = [
   "**/*.min.js",
 ]
 
+[defaults.scan]
+# Include the shared session surface instead of silently skipping its diff.
+maxFileLines = 5000
+
 [defaults.agent]
 model = "openai/gpt-5.6-luna"
 
